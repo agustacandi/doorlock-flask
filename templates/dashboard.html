@@ -1,0 +1,30 @@
+{% extends 'layouts/base.html' %} {% block title %} Dashboard {% endblock %} {%
+block content %}
+<h1 class="text-2xl text-blue-400">
+  Selamat Datang di
+  <span class="font-bold text-blue-900">Doorlock System - LAB AJK</span>
+</h1>
+<div class="grid grid-cols-2 gap-4 mt-[26px]">
+  <div class="shadow border-[1px] rounded-xl p-[19px]">
+    <h3 class="text-[18px] font-bold text-blue-900">Data Wajah</h3>
+    <h2 class="mt-[17px] text-[32px] font-bold text-blue-900">
+      {{ data_wajah }}
+    </h2>
+  </div>
+  <div class="shadow border-[1px] rounded-xl p-[19px]">
+    <h3 class="text-[18px] font-bold text-blue-900">Jumlah Wajah Terdeteksi</h3>
+    <h2 class="mt-[17px] text-[32px] font-bold text-blue-900">23</h2>
+  </div>
+</div>
+<h1 class="mt-[84px] font-bold text-[24px] text-blue-900">
+  Log Masuk Terbaru Hari Ini
+</h1>
+<div class="mt-[22px]">
+  {% for log in logs %}
+  <div class="shadow border-[1px] rounded-xl p-[22px] mb-[17px]">
+    <p class="text-[12px]">{{ log.time }} - {{ log.job }}</p>
+    <h2 class="text-[16px] font-bold">{{ log.name }} - {{ log.status }}</h2>
+  </div>
+  {% endfor %}
+</div>
+{% endblock %}

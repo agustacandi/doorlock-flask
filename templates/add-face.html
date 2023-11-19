@@ -1,0 +1,62 @@
+{% extends 'layouts/base.html' %} {% block title %} Tambah Data Wajah {%
+endblock %} {% block content %}
+<h1 class="text-2xl text-blue-400">
+  Tambah
+  <span class="font-bold text-blue-900">Data Wajah</span>
+</h1>
+<form
+  action="/face-data/add"
+  method="post"
+  class="mt-[20px] rounded-lg shadow-lg border-[1px] p-[32px]"
+>
+  <div>
+    <label for="nama" class="block text-blue-900 font-bold">Nama Lengkap</label>
+    <input
+      type="text"
+      id="nama"
+      name="nama"
+      class="mt-3 rounded-lg w-full border-blue-900 text-[12px]"
+      required
+    />
+  </div>
+  <div class="mt-5">
+    <label for="profesi" class="block text-blue-900 font-bold">Profesi</label>
+    <select
+      name="profesi"
+      id="profesi"
+      class="w-full py-2 px-5 rounded-lg border-blue-900 text-[12px] mt-3"
+      required
+    >
+      <option value="" selected>Pilih Profesi</option>
+      <option value="Dosen">Dosen</option>
+      <option value="Teknisi">Teknisi</option>
+      <option value="Mahasiswa">Mahasiswa</option>
+    </select>
+  </div>
+  <div class="mt-5 w-full flex justify-end items-center space-x-5">
+    <a
+      href="/face-data"
+      class="inline-block py-2 w-[120px] bg-red-400 rounded-lg text-white font-bold text-center"
+    >
+      Batal
+    </a>
+    <button
+      type="submit"
+      class="px-3 py-2 w-[120px] bg-green-400 rounded-lg text-white font-bold"
+    >
+      Selanjutnya
+    </button>
+  </div>
+</form>
+{% endblock %} {% block script %}
+<script>
+  $(document).ready(function () {
+    var table = $("#example")
+      .DataTable({
+        responsive: true,
+      })
+      .columns.adjust()
+      .responsive.recalc();
+  });
+</script>
+{% endblock %}

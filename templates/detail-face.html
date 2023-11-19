@@ -1,0 +1,17 @@
+{% extends 'layouts/base.html' %} {% block title %} Log Aktivitas {% endblock %}
+{% block content %}
+<h1 class="text-2xl text-blue-400">
+  Data Wajah
+  <span class="font-bold text-blue-900"> - {{ data.split('-')[0] }}</span>
+</h1>
+<div
+  class="mt-[20px] rounded-lg shadow-lg border-[1px] p-[32px] grid grid-cols-5 gap-4"
+>
+  {% for image in list_image %}
+  <img
+    src="{{ url_for('static', filename='dataset/' + data + '/' + image) }}"
+    alt="Face"
+  />
+  {% endfor %}
+</div>
+{% endblock %}

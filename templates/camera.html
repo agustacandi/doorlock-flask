@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doorlock - Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='stylesheets/main.css') }}"
+    />
+  </head>
+  <body>
+    <main class="min-h-screen w-full flex">
+      <div class="h-auto bg-blue-900 w-1/2 p-[31px]">
+        <img
+          class="w-[113px]"
+          src="{{ url_for('static', filename='icon/icon.png') }}"
+          alt=""
+        />
+      </div>
+      <div class="h-auto w-1/2 text-right font-bold text-blue-900 p-[31px]">
+        <h1>Suatu Ruangan Perlu</h1>
+        <h1>Pengamanan Yang Ketat</h1>
+      </div>
+      <div
+        class="absolute m-auto w-[500px] h-[550px] bg-white rounded-lg border-blue-500 shadow-lg p-[30px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      >
+        <h1 class="text-[24px] text-blue-900 font-bold">
+          Selamat Datang di LAB!
+        </h1>
+        <p class="text-[12px] text-blue-900">
+          Silahkan Perlihatkan <span class="font-bold">Wajah</span> Anda DI
+          Depan
+          <span class="font-bold">Kamera</span>
+        </p>
+        <img
+          class="w-full mt-[14px]"
+          src="{{ url_for('video_feed') }}"
+          alt="Camera"
+        />
+        <div class="text-center mt-[10px]">
+          <p class="text-blue-900">Status:</p>
+          <p class="font-bold text-red-400 text-[18px]">Terkunci</p>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>
+<!-- <h1 class="text-2xl text-blue-400">
+  Camera
+  <span class="font-bold text-blue-900">Menu</span>
+</h1>
+<div class="shadow border-[1px] rounded-xl p-[22px] mb-[17px]">
+  <img
+    class="w-[500px] text-center mx-auto"
+    src="{{ url_for('video_feed') }}"
+    alt="Camera"
+  />
+</div> -->
