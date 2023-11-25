@@ -2,13 +2,28 @@ from flask import Flask, render_template, Response, request, redirect, url_for, 
 import cv2
 import os
 import time
+import keras
+import numpy as np
+import io
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 
 dict = {}
 face_detected = False
+model = keras.models.load_model("static/models/model_cnn1_251123_5_gray.h5")
 
+labels = []
+with io.open("static/labels/labels.txt", "r", encoding="utf-8") as f:
+    label = f.readlines()
+    label = [line.rstrip("\n") for line in label]
+    print(label)
+    for i in label:
+        split = i.split("-")
+        labels.append(split[0])
+for i in labels:
+    split = i.split("-")
+    print(split[0])
 
 # def capture_frame(param):
 #     time.sleep(3)
@@ -59,19 +74,41 @@ def gen_frames():
 
         if success:
             # Mengubah frame menjadi grayscale
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             # Mendeteksi wajah pada frame
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
-
+            faces = faces[0:1]
             # Menggambar persegi di sekitar wajah
-            for x, y, w, h in faces:
-                cv2.rectangle(frame, (x, y), (x + w + 10, y + h + 10), (0, 255, 0), 2)
-                cv2.putText(frame, "Wajah Terdeteksi", (x, y - 10), 2, 0.7, (0, 255, 0))
-
             # Mendeteksi persegi disekitar wajah
             if len(faces) > 0:
-                print("Wajah Terdeteksi")
+                # print("Wajah Terdeteksi")
+                for x, y, w, h in faces:
+                    crop_face = frame[y : y + h, x : x + w]
+                    # crop_face = cv2.cvtColor(crop_face, cv2.COLOR_BGR2RGB)
+                    crop_face = cv2.cvtColor(crop_face, cv2.COLOR_BGR2GRAY)
+                    # crop_face = crop_face / 255.0
+                    crop_face = cv2.resize(crop_face, (224, 224))
+                    crop_face = crop_face.reshape((1, 224, 224, 1))
+                    cv2.rectangle(
+                        frame, (x, y), (x + w + 10, y + h + 10), (0, 255, 0), 2
+                    )
+                    
+                    print(crop_face.shape)
+                    prediction = model.predict(crop_face)
+                    identity = prediction.argmax()
+                    pred = np.max(prediction)
+                    for i in prediction:
+                        for j in i:
+                            print(j * 100)
+                    if pred > 0.8:
+                        cv2.putText(
+                        frame, f"{labels[identity]} {pred * 100:.2f}%", (x, y - 10), 2, 0.7, (0, 255, 0)
+                        )
+                    else:
+                        cv2.putText(
+                        frame, "Wajah Tidak Dikenali", (x, y - 10), 2, 0.7, (0, 0, 255)
+                        )
             else:
                 print("Wajah Tidak Terdeteksi")
 
@@ -82,6 +119,9 @@ def gen_frames():
             break
 
 
+import shutil
+
+
 def generate_dataset(data):
     time.sleep(3)
 
@@ -89,18 +129,22 @@ def generate_dataset(data):
         "src/helper/haarcascade_frontalface_default.xml"
     )
 
-    os.mkdir("static/dataset/" + data)
+    if os.path.exists("static/dataset/" + data):
+        shutil.rmtree("static/dataset/" + data)
+        os.mkdir("static/dataset/" + data)
+    else:
+        os.mkdir("static/dataset/" + data)
 
     def face_cropped(img):
-        gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        gray = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         faces = face_classifier.detectMultiScale(gray, 1.3, 5)
         # scaling factor=1.3
         # Minimum neighbor = 5
 
-        if faces == ():
+        if not len(faces) > 0:
             return None
         for x, y, w, h in faces:
-            cropped_face = img[y: y + h, x: x + w]
+            cropped_face = img[y : y + h, x : x + w]
         return cropped_face
 
     cap = cv2.VideoCapture(0)
@@ -111,8 +155,8 @@ def generate_dataset(data):
         ret, img = cap.read()
         if face_cropped(img) is not None:
             count_img += 1
-            face = cv2.resize(face_cropped(img), (200, 200))
-            face = cv2.cvtColor(face, cv2.COLOR_BGR2GRAY)
+            face = cv2.resize(face_cropped(img), (224, 224))
+            # face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
 
             file_name_path = "static/dataset/" + data + "/" + str(count_img) + ".jpg"
             cv2.imwrite(file_name_path, face)
@@ -129,7 +173,7 @@ def generate_dataset(data):
             frame = cv2.imencode(".jpg", face)[1].tobytes()
             yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
 
-            if cv2.waitKey(1) == 13 or count_img == 100:
+            if cv2.waitKey(1) == 13 or count_img == 50:
                 break
 
 
@@ -142,10 +186,11 @@ def index():
 def dashboard():
     data_wajah = len(os.listdir("static/dataset"))
     logs = [
-        {"name": "Fathan", "job": "Teknisi", "time": "10:00", "status": "Masuk"},
-        {"name": "Candi", "job": "Mahasiswa", "time": "11:00", "status": "Masuk"},
-        {"name": "Fathan", "job": "Teknisi", "time": "11:00", "status": "Keluar"},
-        {"name": "Candi", "job": "Mahasiswa", "time": "12:00", "status": "Keluar"},
+        # {"name": "Fathan", "job": "Teknisi", "time": "10:00", "status": "Masuk"},
+        # {"name": "Candi", "job": "Mahasiswa", "time": "11:00", "status": "Masuk"},
+        # {"name": "Fara", "job": "Mahasiswa", "time": "12:00", "status": "Masuk"},
+        # {"name": "Fathan", "job": "Teknisi", "time": "11:00", "status": "Keluar"},
+        # {"name": "Candi", "job": "Mahasiswa", "time": "12:00", "status": "Keluar"},
     ]
     return render_template("dashboard.html", logs=logs, data_wajah=data_wajah)
 
@@ -190,7 +235,10 @@ def add_face_data():
 @app.route("/face-data/detail/<string:data>", methods=["GET", "POST"])
 def detail_face_data(data):
     path = "static/dataset/" + data
-    list_image = os.listdir(path)
+    if os.path.exists(path):
+        list_image = os.listdir(path)
+    else:
+        return redirect(url_for("face_data"))
     return render_template("detail-face.html", data=data, list_image=list_image)
 
 
