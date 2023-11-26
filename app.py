@@ -11,7 +11,11 @@ app.config["DEBUG"] = True
 
 dict = {}
 face_detected = False
-model = keras.models.load_model("static/models/model_cnn1_251123_5_gray.h5")
+face_detected_name = None
+model = keras.models.load_model(
+    "static/models/model_mobilenet_20231125_203532_4_rgb.h5"
+)
+# model = keras.models.load_model("static/models/model_251123_4_rgb_1.h5")
 
 labels = []
 with io.open("static/labels/labels.txt", "r", encoding="utf-8") as f:
@@ -21,9 +25,6 @@ with io.open("static/labels/labels.txt", "r", encoding="utf-8") as f:
     for i in label:
         split = i.split("-")
         labels.append(split[0])
-for i in labels:
-    split = i.split("-")
-    print(split[0])
 
 # def capture_frame(param):
 #     time.sleep(3)
@@ -63,14 +64,18 @@ for i in labels:
 #             break
 
 
-def gen_frames():
+def gen_frames(rdrct):
+    global face_detected, face_detected_name
     cap = cv2.VideoCapture(0)
 
     face_cascade = cv2.CascadeClassifier(
         "./src/helper/haarcascade_frontalface_default.xml"
     )
+    labellss = ""
+    validate = 0
     while True:
         success, frame = cap.read()
+        frame = cv2.flip(frame, 1)
 
         if success:
             # Mengubah frame menjadi grayscale
@@ -80,20 +85,21 @@ def gen_frames():
             faces = face_cascade.detectMultiScale(gray, 1.3, 5)
             faces = faces[0:1]
             # Menggambar persegi di sekitar wajah
+
             # Mendeteksi persegi disekitar wajah
             if len(faces) > 0:
                 # print("Wajah Terdeteksi")
                 for x, y, w, h in faces:
                     crop_face = frame[y : y + h, x : x + w]
-                    # crop_face = cv2.cvtColor(crop_face, cv2.COLOR_BGR2RGB)
-                    crop_face = cv2.cvtColor(crop_face, cv2.COLOR_BGR2GRAY)
+                    crop_face = cv2.cvtColor(crop_face, cv2.COLOR_BGR2RGB)
+                    # crop_face = cv2.cvtColor(crop_face, cv2.COLOR_BGR2GRAY)
                     # crop_face = crop_face / 255.0
                     crop_face = cv2.resize(crop_face, (224, 224))
-                    crop_face = crop_face.reshape((1, 224, 224, 1))
+                    crop_face = crop_face.reshape((1, 224, 224, 3))
                     cv2.rectangle(
                         frame, (x, y), (x + w + 10, y + h + 10), (0, 255, 0), 2
                     )
-                    
+
                     print(crop_face.shape)
                     prediction = model.predict(crop_face)
                     identity = prediction.argmax()
@@ -102,15 +108,42 @@ def gen_frames():
                         for j in i:
                             print(j * 100)
                     if pred > 0.8:
+                        print(validate)
+                        if validate > 20:
+                            # if labellss == labels[identity]:
+                            face_detected = True
+                            face_detected_name = labels[identity]
+                            print(face_detected_name)
+                            validate = 0
+                            # print("MASUK")
+                            # with app.app_context():
+                            #     url = url_for('greet', name='John')
+                            #     return url
                         cv2.putText(
-                        frame, f"{labels[identity]} {pred * 100:.2f}%", (x, y - 10), 2, 0.7, (0, 255, 0)
+                            frame,
+                            f"{labels[identity]} {pred * 100:.2f}%",
+                            (x, y - 10),
+                            2,
+                            0.7,
+                            (0, 255, 0),
                         )
+                        labellss = labels[identity]
+                        validate += 1
+
                     else:
                         cv2.putText(
-                        frame, "Wajah Tidak Dikenali", (x, y - 10), 2, 0.7, (0, 0, 255)
+                            frame,
+                            "Wajah Tidak Dikenali",
+                            (x, y - 10),
+                            2,
+                            0.7,
+                            (0, 0, 255),
                         )
-            else:
-                print("Wajah Tidak Terdeteksi")
+
+                        labellss = ""
+                        validate = 0
+            # else:
+            # print("Wajah Tidak Terdeteksi")
 
             ret, buffer = cv2.imencode(".jpg", frame)
             frame = buffer.tobytes()
@@ -180,6 +213,25 @@ def generate_dataset(data):
 @app.route("/")
 def index():
     return render_template("camera.html")
+
+
+@app.route("/is-face-detected")
+def is_face_detected():
+    global face_detected, face_detected_name
+    # print(is_face_detected, face_detected_name)
+    if face_detected and face_detected_name is not None:
+        # return jsonify({"status": True, "name": face_detected_name}), 200
+        response = jsonify({"status": True, "name": face_detected_name}), 200
+        face_detected = False
+        face_detected_name = None
+        return response
+    else:
+        # print("Tidak ada wajah terdeteksi")
+        # return False
+        # is_face_detected = False
+        # face_detected_name = None
+        return jsonify({"status": False, "name": str(face_detected_name)}), 200
+    # return redirect(url_for("index"))
 
 
 @app.route("/dashboard")
@@ -256,7 +308,9 @@ def log_activity():
 
 @app.route("/video-feed")
 def video_feed():
-    return Response(gen_frames(), mimetype="multipart/x-mixed-replace; boundary=frame")
+    return Response(
+        gen_frames(redirect), mimetype="multipart/x-mixed-replace; boundary=frame"
+    )
 
 
 @app.route("/take-frame/<string:data>")
@@ -264,6 +318,11 @@ def take_frame(data):
     return Response(
         generate_dataset(data), mimetype="multipart/x-mixed-replace; boundary=frame"
     )
+
+
+@app.route("/success/<string:name>")
+def greet(name):
+    return render_template("success.html", name=name)
 
 
 if __name__ == "__main__":
