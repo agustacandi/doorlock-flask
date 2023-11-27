@@ -2,3 +2,4 @@
 backup/
 static/models/
 models/
+.venv/

@@ -1,38 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Doorlock - Home</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='stylesheets/main.css') }}"
+    />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Doorlock - Home</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;700&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='stylesheets/main.css') }}" />
-</head>
-
-<body>
-  <main class="min-h-screen w-full flex">
-    <div class="h-auto bg-blue-900 w-1/2 p-[31px]">
-      <img class="w-[113px]" src="{{ url_for('static', filename='icon/icon.png') }}" alt="" />
-    </div>
-    <div
-      class="absolute m-auto w-[500px] bg-white rounded-lg border-blue-500 shadow-lg p-[30px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
-      <h1 class="text-[24px] text-center text-blue-900 font-bold">
-        Selamat Datang {{ name.split('-')[0] }}!
-      </h1>
-      <h5 class="text-center text-[18px]">Silahkan Masuk</h5>
-    </div>
-  </main>
-  <script>
-    setTimeout(() => {
-      window.location.href = "{{ url_for('index') }}";
-    }, 3000);
-  </script>
-</body>
-
-
+  <body>
+    <main class="min-h-screen w-full flex">
+      <div class="h-auto bg-blue-900 w-1/2 p-[31px]">
+        <img
+          class="w-[113px]"
+          src="{{ url_for('static', filename='icon/icon.png') }}"
+          alt=""
+        />
+      </div>
+      <div
+        class="absolute m-auto w-[500px] bg-white rounded-lg border-blue-500 shadow-lg p-[30px] top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2"
+      >
+        <h1 class="text-[24px] text-center text-blue-900 font-bold">
+          Selamat Datang {{ name.split('-')[0] }}!
+        </h1>
+        <h5 class="text-center text-[18px]">Silahkan Masuk</h5>
+      </div>
+    </main>
+    <script>
+      setTimeout(() => {
+        window.location.href = "{{ url_for('index') }}";
+      }, 5000);
+    </script>
+  </body>
 </html>
 <!-- <h1 class="text-2xl text-blue-400">
   Camera

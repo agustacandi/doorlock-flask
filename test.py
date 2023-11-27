@@ -17,7 +17,7 @@ detector = cv2.dnn.readNetFromCaffe(
 )
 
 # Membuat video capture
-cap = cv2.VideoCapture(1)
+cap = cv2.VideoCapture(0)
 # original_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
 # original_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
@@ -38,9 +38,7 @@ while True:
     # crop_frame = cv2.resize(frame, (224, 224))
     # crop_frame = crop_frame.reshape((1, 224, 224, 3))
     # Mendeteksi wajah
-    faces = face_detector.detectMultiScale(
-        frame, scaleFactor=1.1, minNeighbors=5
-    )
+    faces = face_detector.detectMultiScale(frame, scaleFactor=1.1, minNeighbors=5)
     faces = faces[0:1]
     if faces is ():
         cv2.putText(
@@ -65,9 +63,11 @@ while True:
             prediction = model.predict(face)
             identity = prediction.argmax()
             pred = np.max(prediction)
-            for i in prediction:
-                for j in i:
-                    print(j * 100)
+            # for i in prediction:
+            #     for j in i:
+            #         print(j * 100)
+            print(pred)
+            time.sleep(1)
 
             if pred > 0.95:
                 cv2.putText(

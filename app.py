@@ -5,16 +5,17 @@ import time
 import keras
 import numpy as np
 import io
+import serial
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 
+serial_com = serial.Serial("/dev/ttyACM1", 9600, timeout=1)
+
 dict = {}
 face_detected = False
 face_detected_name = None
-model = keras.models.load_model(
-    "static/models/model_mobilenet_20231125_203532_4_rgb.h5"
-)
+model = keras.models.load_model("static/models/model_4_rgb.h5")
 # model = keras.models.load_model("static/models/model_251123_4_rgb_1.h5")
 
 labels = []
@@ -322,8 +323,9 @@ def take_frame(data):
 
 @app.route("/success/<string:name>")
 def greet(name):
+    serial_com.write(str("on").encode("utf-8"))
     return render_template("success.html", name=name)
 
 
 if __name__ == "__main__":
-    app.run()
+    app.run(debug=True, port=5001)
