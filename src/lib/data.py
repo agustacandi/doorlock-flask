@@ -1,4 +1,4 @@
-people = [
+# people = [
     # {
     #     "name": "Candi Agusta",
     #     "job": "Wengdev",
@@ -29,4 +29,10 @@ people = [
     #     "address": "Blindungan",
     #     "created_at": "15:00",
     # },
-]
+# ]
+
+import json
+with open('static/log/log.json', 'r') as f:
+    people = json.load(f)
+    
+print(people)

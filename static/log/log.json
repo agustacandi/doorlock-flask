@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "name": "Fathan",
+    "job": "Mahasiswa",
+    "created_at": "2023-11-28 22:01:41"
+  },
+  {
+    "id": 2,
+    "name": "Fathan",
+    "job": "Mahasiswa",
+    "created_at": "2023-11-29 11:39:35"
+  },
+  {
+    "id": 3,
+    "name": "Krisna",
+    "job": "Mahasiswa",
+    "created_at": "2023-11-29 11:41:06"
+  },
+  {
+    "id": 4,
+    "name": "Krisna",
+    "job": "Mahasiswa",
+    "created_at": "2023-11-29 11:41:45"
+  },
+  {
+    "id": 5,
+    "name": "Eka Putri",
+    "job": "Mahasiswa",
+    "created_at": "2023-11-29 11:42:06"
+  },
+  {
+    "id": 6,
+    "name": "Eka Putri",
+    "job": "Mahasiswa",
+    "created_at": "2023-11-29 11:43:15"
+  },
+  {
+    "id": 7,
+    "name": "Eka Putri",
+    "job": "Mahasiswa",
+    "created_at": "2023-11-29 11:44:18"
+  }
+]

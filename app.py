@@ -6,26 +6,37 @@ import keras
 import numpy as np
 import io
 import serial
+import pandas as pd
+import json
 
 app = Flask(__name__)
 app.config["DEBUG"] = True
 
-serial_com = serial.Serial("/dev/ttyACM1", 9600, timeout=1)
+
+# serial_com = serial.Serial("/dev/ttyACM1", 9600, timeout=1)
+# serial_com = serial.Serial("COM20", 9600, timeout=1)
 
 dict = {}
 face_detected = False
 face_detected_name = None
-model = keras.models.load_model("static/models/model_4_rgb.h5")
-# model = keras.models.load_model("static/models/model_251123_4_rgb_1.h5")
+# model = keras.models.load_model("static/models/model_4_rgb.h5")
+model = keras.models.load_model("static\models\model_160x160_rgb (2).h5")
 
 labels = []
-with io.open("static/labels/labels.txt", "r", encoding="utf-8") as f:
-    label = f.readlines()
-    label = [line.rstrip("\n") for line in label]
-    print(label)
-    for i in label:
-        split = i.split("-")
-        labels.append(split[0])
+# with io.open("static/labels/labels.txt", "r", encoding="utf-8") as f:
+#     label = f.readlines()
+#     label = [line.rstrip("\n") for line in label]
+#     print(label)
+#     for i in label:
+#         split = i.split("-")
+#         labels.append(split[0])
+
+with open("static/labels/labels.json", "r") as json_file:
+    data = json.load(json_file)
+
+for i in data:
+    labels.append(i)
+    print(i)
 
 # def capture_frame(param):
 #     time.sleep(3)
@@ -83,10 +94,8 @@ def gen_frames(rdrct):
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             # Mendeteksi wajah pada frame
-            faces = face_cascade.detectMultiScale(gray, 1.3, 5)
+            faces = face_cascade.detectMultiScale(gray, 1.1, 5)
             faces = faces[0:1]
-            # Menggambar persegi di sekitar wajah
-
             # Mendeteksi persegi disekitar wajah
             if len(faces) > 0:
                 # print("Wajah Terdeteksi")
@@ -95,12 +104,11 @@ def gen_frames(rdrct):
                     crop_face = cv2.cvtColor(crop_face, cv2.COLOR_BGR2RGB)
                     # crop_face = cv2.cvtColor(crop_face, cv2.COLOR_BGR2GRAY)
                     # crop_face = crop_face / 255.0
-                    crop_face = cv2.resize(crop_face, (224, 224))
-                    crop_face = crop_face.reshape((1, 224, 224, 3))
+                    crop_face = cv2.resize(crop_face, (160, 160))
+                    crop_face = crop_face.reshape((1, 160, 160, 3))
                     cv2.rectangle(
                         frame, (x, y), (x + w + 10, y + h + 10), (0, 255, 0), 2
                     )
-
                     print(crop_face.shape)
                     prediction = model.predict(crop_face)
                     identity = prediction.argmax()
@@ -108,22 +116,28 @@ def gen_frames(rdrct):
                     for i in prediction:
                         for j in i:
                             print(j * 100)
-                    if pred > 0.8:
+                    if pred > 0.95:
                         print(validate)
                         if validate > 20:
-                            # if labellss == labels[identity]:
-                            face_detected = True
-                            face_detected_name = labels[identity]
-                            print(face_detected_name)
-                            validate = 0
+                            if labellss == "Unknown":
+                                face_detected = True
+                                face_detected_name = labels[identity]
+                                print(face_detected_name)
+                                validate = 0
+                            elif labellss == labels[identity]:
+                                face_detected = True
+                                face_detected_name = labels[identity]
+                                print(face_detected_name)
+                                validate = 0
                             # print("MASUK")
                             # with app.app_context():
                             #     url = url_for('greet', name='John')
                             #     return url
                         cv2.putText(
                             frame,
-                            f"{labels[identity]} {pred * 100:.2f}%",
-                            (x, y - 10),
+                            # f"{labels[identity]} {pred * 100:.2f}%",
+                            f"Scanning...",
+                            (25, 25),
                             2,
                             0.7,
                             (0, 255, 0),
@@ -135,12 +149,11 @@ def gen_frames(rdrct):
                         cv2.putText(
                             frame,
                             "Wajah Tidak Dikenali",
-                            (x, y - 10),
+                            (25, 25),
                             2,
                             0.7,
                             (0, 0, 255),
                         )
-
                         labellss = ""
                         validate = 0
             # else:
@@ -191,7 +204,6 @@ def generate_dataset(data):
             count_img += 1
             face = cv2.resize(face_cropped(img), (224, 224))
             # face = cv2.cvtColor(face, cv2.COLOR_BGR2RGB)
-
             file_name_path = "static/dataset/" + data + "/" + str(count_img) + ".jpg"
             cv2.imwrite(file_name_path, face)
             cv2.putText(
@@ -209,6 +221,7 @@ def generate_dataset(data):
 
             if cv2.waitKey(1) == 13 or count_img == 50:
                 break
+        time.sleep(0.3)
 
 
 @app.route("/")
@@ -303,7 +316,7 @@ def take_photo(data):
 @app.route("/log-activity")
 def log_activity():
     from src.lib.data import people
-
+    
     return render_template("log-activity.html", people=people)
 
 
@@ -323,9 +336,51 @@ def take_frame(data):
 
 @app.route("/success/<string:name>")
 def greet(name):
-    serial_com.write(str("on").encode("utf-8"))
+    # serial_com.write(str("on").encode("utf-8"))
+    from datetime import datetime
+    import pytz
+
+    def tambah_entri_log(log, nama, zona_waktu):
+        # Mendapatkan waktu saat ini dengan zona waktu yang diinginkan
+        waktu_sekarang = datetime.now(pytz.timezone(zona_waktu)).strftime(
+            "%Y-%m-%d %H:%M:%S"
+        )
+
+        # Menentukan ID otomatis berdasarkan jumlah entri yang sudah ada
+        identitas = len(log) + 1
+        
+        # Membagi nama dan profesi
+        name = nama.split("-")[0]
+        job = nama.split("-")[1]
+
+        # Membuat entri baru
+        entri_baru = {"id": identitas, "name": name, "job": job, "created_at": waktu_sekarang}
+
+        # Menambahkan entri baru ke dalam log
+        log.append(entri_baru)
+
+        # Mengembalikan log yang diperbarui
+        return log
+
+    # Membaca log yang sudah ada (jika ada)
+    path_log = "static/log/log.json"
+    try:
+        with open(path_log, "r") as file:
+            log_data = json.load(file)
+    except FileNotFoundError:
+        log_data = []
+
+    # Menambahkan entri pertama ke dalam log dengan zona waktu WIB
+    log_data = tambah_entri_log(log_data, str(name), "Asia/Jakarta")
+
+    # Menyimpan log ke dalam file JSON
+    with open(path_log, "w") as file:
+        json.dump(log_data, file, indent=2)
+
     return render_template("success.html", name=name)
 
-
+@app.route("/failed/")
+def fail():
+    return render_template("fail.html")
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
