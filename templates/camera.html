@@ -50,8 +50,10 @@
             url: "/is-face-detected",
             success: function (response) {
               console.log(response.status + " " + response.name);
-              if (response.status == true){
+              if (response.status == true && response.name != "Unknown"){
                 window.location.href = "/success/" + response.name;
+              } else if (response.status == true && response.name == "Unknown") {
+                window.location.href = "/failed/";
               }
               // console.log(response)
               // if (response.status == true) {
