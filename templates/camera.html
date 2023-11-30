@@ -28,7 +28,7 @@
       </h1>
       <p class="text-[12px] text-blue-900">
         Silahkan Perlihatkan <span class="font-bold">Wajah</span> Anda DI
-        Depanp
+        Depan
         <span class="font-bold">Kamera</span>
       </p>
       <img class="w-full mt-[14px]" src="{{ url_for('video_feed') }}" alt="Camera" />
@@ -50,7 +50,7 @@
             url: "/is-face-detected",
             success: function (response) {
               console.log(response.status + " " + response.name);
-              if (response.status == true && response.name != "Unknown"){
+              if (response.status == true && response.name != "Unknown") {
                 window.location.href = "/success/" + response.name;
               } else if (response.status == true && response.name == "Unknown") {
                 window.location.href = "/failed/";
