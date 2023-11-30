@@ -85,20 +85,27 @@ def gen_frames(rdrct):
     )
     labellss = ""
     validate = 0
+    fail = 0
+    check = []
     while True:
         success, frame = cap.read()
         frame = cv2.flip(frame, 1)
+
+        if fail > 30:
+            face_detected = True
+            face_detected_name = labels[identity]
+            print(face_detected_name)
+            validate = 0
 
         if success:
             # Mengubah frame menjadi grayscale
             gray = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
 
             # Mendeteksi wajah pada frame
-            faces = face_cascade.detectMultiScale(gray, 1.1, 5)
+            faces = face_cascade.detectMultiScale(gray, 1.3, 5, minSize=(50, 50))
             faces = faces[0:1]
             # Mendeteksi persegi disekitar wajah
             if len(faces) > 0:
-                # print("Wajah Terdeteksi")
                 for x, y, w, h in faces:
                     crop_face = frame[y : y + h, x : x + w]
                     crop_face = cv2.cvtColor(crop_face, cv2.COLOR_BGR2RGB)
@@ -116,19 +123,39 @@ def gen_frames(rdrct):
                     for i in prediction:
                         for j in i:
                             print(j * 100)
-                    if pred > 0.95:
+                    if pred > 0.9:
                         print(validate)
-                        if validate > 20:
-                            if labellss == "Unknown":
+                        # if validate > 20:
+                        # if labellss == "Unknown":
+                        #     face_detected = True
+                        #     face_detected_name = labels[identity]
+                        #     print(face_detected_name)
+                        #     validate = 0
+
+                        if len(check) == 15:
+                            print(check)
+                            if all(elem == check[0] for elem in check):
+                                if labellss == "Unknown":
+                                    face_detected = True
+                                    face_detected_name = "Unknown"
+                                    # print(face_detected_name)
+                                    # print(check)
+                                    validate = 0
+                                else:
+                                    face_detected = True
+                                    face_detected_name = labels[identity]
+                                    print(face_detected_name)
+                                    validate = 0
+                            else:
                                 face_detected = True
-                                face_detected_name = labels[identity]
+                                face_detected_name = str("Unknown")
                                 print(face_detected_name)
                                 validate = 0
-                            elif labellss == labels[identity]:
-                                face_detected = True
-                                face_detected_name = labels[identity]
-                                print(face_detected_name)
-                                validate = 0
+                            # elif labellss == labels[identity]:
+                            #     face_detected = True
+                            #     face_detected_name = labels[identity]
+                            #     print(face_detected_name)
+                            #     validate = 0
                             # print("MASUK")
                             # with app.app_context():
                             #     url = url_for('greet', name='John')
@@ -144,6 +171,7 @@ def gen_frames(rdrct):
                         )
                         labellss = labels[identity]
                         validate += 1
+                        check.append(labels[identity])
 
                     else:
                         cv2.putText(
@@ -156,6 +184,7 @@ def gen_frames(rdrct):
                         )
                         labellss = ""
                         validate = 0
+                        fail += 1
             # else:
             # print("Wajah Tidak Terdeteksi")
 
@@ -164,6 +193,7 @@ def gen_frames(rdrct):
             yield (b"--frame\r\n" b"Content-Type: image/jpeg\r\n\r\n" + frame + b"\r\n")
         else:
             break
+        time.sleep(0.3)
 
 
 import shutil
@@ -316,7 +346,7 @@ def take_photo(data):
 @app.route("/log-activity")
 def log_activity():
     from src.lib.data import people
-    
+
     return render_template("log-activity.html", people=people)
 
 
@@ -348,13 +378,18 @@ def greet(name):
 
         # Menentukan ID otomatis berdasarkan jumlah entri yang sudah ada
         identitas = len(log) + 1
-        
+
         # Membagi nama dan profesi
         name = nama.split("-")[0]
         job = nama.split("-")[1]
 
         # Membuat entri baru
-        entri_baru = {"id": identitas, "name": name, "job": job, "created_at": waktu_sekarang}
+        entri_baru = {
+            "id": identitas,
+            "name": name,
+            "job": job,
+            "created_at": waktu_sekarang,
+        }
 
         # Menambahkan entri baru ke dalam log
         log.append(entri_baru)
@@ -379,8 +414,11 @@ def greet(name):
 
     return render_template("success.html", name=name)
 
+
 @app.route("/failed/")
 def fail():
     return render_template("fail.html")
+
+
 if __name__ == "__main__":
     app.run(debug=True, port=5001)
